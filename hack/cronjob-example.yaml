@@ -3,10 +3,8 @@ apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: gcloud-export-example
-  namespace: default
 spec:
-  # Testing every 10 mins
-  schedule: "*/10 * * * *"
+  schedule: "@midnight"
   jobTemplate:
     spec:
       template:
