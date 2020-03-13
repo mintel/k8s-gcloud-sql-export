@@ -1,0 +1,41 @@
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: gcloud-export-example
+  namespace: default
+spec:
+  # Testing every 10 mins
+  schedule: "*/10 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+        spec:
+          restartPolicy: Never
+          containers:
+          - name: gcloud-sql-export
+            image: mintel/k8s-gcloud-export:initial
+            env:
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /sa/credentials.json
+            - name: GOOGLE_SQL_INSTANCE_NAME
+              value: my-db-instance-name
+            - name: GOOGLE_SQL_BACKUP_BUCKET
+              value: my-backup-bucket-name
+            - name: GOOGLE_SQL_BACKUP_BUCKET_PATH
+              value: some-folder/some-sub-folder
+            - name: DATABASE 
+              value: my-database
+            resources:
+              limits:
+                cpu: 30m
+              requests:
+                cpu: 30m
+            volumeMounts:
+            - name: gcloud-export-sa
+              mountPath: /sa
+          volumes:
+          - name: gcloud-export-sa
+            secret:
+              secretName: gcloud-export-sa
