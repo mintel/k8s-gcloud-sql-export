@@ -27,13 +27,22 @@ spec:
               value: my-database
             resources:
               limits:
-                cpu: 30m
+                cpu: 200m
+                memory: 256Mi
               requests:
-                cpu: 30m
+                cpu: 100m
+                memory: 64Mi
             volumeMounts:
             - name: gcloud-export-sa
               mountPath: /sa
+            - name: gcloud-config
+              mountPath: /.config
+            securityContext:
+              allowPrivilegeEscalation: false
+              runAsUser: 65534
           volumes:
           - name: gcloud-export-sa
             secret:
               secretName: gcloud-export-sa
+          - name: gcloud-config
+            emptyDir: {}
