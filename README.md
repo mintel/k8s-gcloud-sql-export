@@ -44,7 +44,7 @@ GOOGLE_APPLICATION_CREDENTIALS=/tmp/sa/creds.json
 DATABASE=my-database-name
 ```
 
-Create a service-account for the databace instance with the role `roles/cloudsql-viewer` and place
+Create a service-account for the database instance with the role `roles/cloudsql-viewer` and place
 into `/tmp/sa/creds.json`
 
 ```sh
