@@ -1,7 +1,36 @@
 #!/bin/bash
+#
+# Perform a `gcloud sql export` of a database instance to a Google Bucket.
+#
+# There is an optional `BACKUP_SCHEDULE` environment that can be used to
+# validate.
+# if the script has already been run, and a nightly or hourly backup has
+# already been created.
+#
+# If this is the case, the script can exit(0) early.
+
+
 set -o nounset -o errexit -o pipefail
 [[ -n "${TRACE:-}" ]] && set -x
 
+#
+# Required variables
+#
+
+# GOOGLE_SQL_BACKUP_BUCKET=""
+# GOOGLE_SQL_BACKUP_BUCKET_PATH=""
+# GOOGLE_SQL_INSTANCE_NAME=""
+# DATABASE=""
+
+# BACKUP_SCHEDULE can be used to check if we have successfully performed a backup
+# in the last hour or day. This is used to avoid performing multiple backups if we 
+# have already run (i.e. if the script runs multiple times in succession).
+
+# Valid options are none|hourly|nightly
+BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-"none"}
+
+# Activate a gcloud service account with the location of the credentials file
+# passed in as an argument.
 function gcloud_activate_service_account() {
   local file="$1"
 
@@ -9,10 +38,54 @@ function gcloud_activate_service_account() {
   gcloud config set project "$(jq -r .project_id "$file")"
 }
 
+# Run the `gcloud sql export` command prefixing the filename with the specified
+# `backup_timestamp` argument.
+function gcloud_sql_export() {
+  local backup_timestamp="$1"
+  gcs_backup_path="gs://${GOOGLE_SQL_BACKUP_BUCKET}/${GOOGLE_SQL_BACKUP_BUCKET_PATH}/${backup_timestamp}_${GOOGLE_SQL_INSTANCE_NAME}_${DATABASE}.gz"
+  gcloud --verbosity=debug sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" --database "${DATABASE}" "${gcs_backup_path}"
 
-DATESTAMP=$(date -Iseconds) 
-GCS_BACKUP_PATH="gs://${GOOGLE_SQL_BACKUP_BUCKET}/${GOOGLE_SQL_BACKUP_BUCKET_PATH}/${DATESTAMP}_${GOOGLE_SQL_INSTANCE_NAME}_${DATABASE}.gz"
+}
+
+# Return a GCS filepath, determined by the supplied `backup_timestamp` prefix.
+function get_gcs_path_from_timestamp {
+  local backup_timestamp="$1"
+  local gcs_backup_path="gs://${GOOGLE_SQL_BACKUP_BUCKET}/${GOOGLE_SQL_BACKUP_BUCKET_PATH}/${backup_timestamp}_${GOOGLE_SQL_INSTANCE_NAME}_${DATABASE}.gz"
+  echo "${gcs_backup_path}"
+}
+
+# Used to determine whether name of previous (or new) backup, based on 
+# BACKUP_SCHEDULE setting.
+current_day=$(date  '+%Y-%m-%dT00:00:00')
+current_hour=$(date '+%Y-%m-%dT%H:00:00')
+
+# Some logic to determine if we have already created a backup in the last hour or day.
+# If BACKUP_SCHEDULE is NOT SET, we set the timestamp to the current time.
+
+if [[ $BACKUP_SCHEDULE = "nightly" ]] ; then
+  echo "Checking for a successful backup in the last 24h"
+  gcs_filepath=$(get_gcs_path_from_timestamp "${current_day}")
+  if gsutil -q stat "${gcs_filepath}" ; then
+    echo "Found existing backup in the last 24h - skipping backup"
+    exit 0
+  else
+    echo "No existing backup found - proceeding"
+    backup_timestamp=$(date '+%Y-%m-%dT00:00:00')
+  fi
+elif [[ $BACKUP_SCHEDULE = "hourly" ]] ; then
+  echo "Checking for a successful backup in the last 1h"
+  gcs_filepath=$(get_gcs_path_from_timestamp "${current_hour}")
+  if gsutil -q stat "${gcs_filepath}" ; then
+    echo "Found existing backup in the last 1h - skipping backup"
+    exit 0
+  else
+    echo "No existing backup found - proceeding"
+    backup_timestamp=$(date '+%Y-%m-%dT%H:00:00')
+  fi
+else
+  echo "Not checking for a precious successful backup"
+  backup_timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
+fi
 
 gcloud_activate_service_account "${GOOGLE_APPLICATION_CREDENTIALS}"
-
-gcloud --verbosity=debug sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" "${GCS_BACKUP_PATH}" --database "${DATABASE}"
+gcloud_sql_export "${backup_timestamp}"
