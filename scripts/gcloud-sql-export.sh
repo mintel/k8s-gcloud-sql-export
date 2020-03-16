@@ -13,6 +13,10 @@
 set -o nounset -o errexit -o pipefail
 [[ -n "${TRACE:-}" ]] && set -x
 
+# Required by gsutil and maybe some other gcloud components 
+# since this script doesn't run as root.
+export HOME=/tmp
+
 #
 # Required variables
 #
@@ -54,14 +58,16 @@ function get_gcs_path_from_timestamp {
   echo "${gcs_backup_path}"
 }
 
+# Activate service account
+gcloud_activate_service_account "${GOOGLE_APPLICATION_CREDENTIALS}"
+
 # Used to determine whether name of previous (or new) backup, based on 
 # BACKUP_SCHEDULE setting.
 current_day=$(date  '+%Y-%m-%dT00:00:00')
 current_hour=$(date '+%Y-%m-%dT%H:00:00')
 
-# Some logic to determine if we have already created a backup in the last hour or day.
+# Determine if we have already created a backup in the last hour or day.
 # If BACKUP_SCHEDULE is NOT SET, we set the timestamp to the current time.
-
 if [[ $BACKUP_SCHEDULE = "nightly" ]] ; then
   echo "Checking for a successful backup in the last 24h"
   gcs_filepath=$(get_gcs_path_from_timestamp "${current_day}")
@@ -87,5 +93,5 @@ else
   backup_timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
 fi
 
-gcloud_activate_service_account "${GOOGLE_APPLICATION_CREDENTIALS}"
+# Run backup
 gcloud_sql_export "${backup_timestamp}"
