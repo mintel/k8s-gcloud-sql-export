@@ -69,7 +69,6 @@ current_hour=$(date '+%Y-%m-%dT%H:00:00')
 # Determine if we have already created a backup in the last hour or day.
 # If BACKUP_SCHEDULE is NOT SET, we set the timestamp to the current time.
 if [[ $BACKUP_SCHEDULE = "nightly" ]] ; then
-  echo "Checking for a successful backup in the last 24h"
   gcs_filepath=$(get_gcs_path_from_timestamp "${current_day}")
   if gsutil -q stat "${gcs_filepath}" ; then
     echo "Found existing backup the last 24h with timestamp '${current_day}' - skipping"
@@ -79,7 +78,6 @@ if [[ $BACKUP_SCHEDULE = "nightly" ]] ; then
     backup_timestamp=$(date '+%Y-%m-%dT00:00:00')
   fi
 elif [[ $BACKUP_SCHEDULE = "hourly" ]] ; then
-  echo "Checking for a successful backup in the last 1h"
   gcs_filepath=$(get_gcs_path_from_timestamp "${current_hour}")
   if gsutil -q stat "${gcs_filepath}" ; then
     echo "Found existing backup the last 1h with timestamp '${current_hour}' - skipping"
