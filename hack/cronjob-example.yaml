@@ -25,6 +25,8 @@ spec:
               value: some-folder/some-sub-folder
             - name: DATABASE 
               value: my-database
+            - name: BACKUP_SCHEDULE
+              value: none
             resources:
               limits:
                 cpu: 200m
