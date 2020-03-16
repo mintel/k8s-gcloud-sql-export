@@ -6,14 +6,17 @@ ARG VCS_REF
 RUN echo $BUILD_DATE
 RUN echo $VCS_REF
 
-LABEL org.label-schema.build-date=$BUILD_DATE \
-      org.label-schema.vcs-ref=$VCS_REF \
-      org.label-schema.vcs-url="https://github.com/mintel/k8s-mysqldump.git" \
-      org.label-schema.schema-version="1.0.0-rc1" \
-      org.label-schema.name="k8s-gcloud-export" \
-      org.label-schema.description="An image for exporting mysql databases using 'gcloud sql export', and pushing them to a Google bucket." \
-      org.label-schema.vendor="Mintel Group Ltd." \
-      maintainer="Nick Badger <nbadger@mintel.com>"
+LABEL maintainer="Nick Badger <nbadger@mintel.com>" \
+      org.opencontainers.image.title="k8s-gcloud-export" \
+      org.opencontainers.image.description="An image for exporting mysql databases using 'gcloud sql export', and pushing them to a Google bucket." \
+      org.opencontainers.url="https://github.com/mintel/k8s-gcloud-sql-export" \
+      org.opencontainers.source="https://github.com/mintel/k8s-gcloud-sql-export.git" \
+      org.opencontainers.image.version="0.1.0-rc1" \
+      org.opencontainers.image.vendor="Mintel Group Ltd." \
+      org.opencontainers.image.licences="MIT" \
+      org.opencontainers.authors="Nick Badger <nbadger@mintel.com>" \
+      org.opencontainers.image.created="$BUILD_DATE" \
+      org.opencontainers.image.revision="$VCS_REF"
 
 WORKDIR /tmp
 
