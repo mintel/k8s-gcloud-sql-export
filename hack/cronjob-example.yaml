@@ -5,6 +5,8 @@ metadata:
   name: gcloud-export-example
 spec:
   schedule: "@midnight"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:
