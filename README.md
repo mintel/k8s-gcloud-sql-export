@@ -20,12 +20,14 @@ An image for exporting mysql databases using `gcloud sql export`, and pushing th
 | Variable Name                 | Description                                                         | Default |
 |-------------------------------|---------------------------------------------------------------------|---------|
 | TRACE                         | Enable script tracing                                               | ""      |
+| GCLOUD_VERBOSITY              | Verbosity option passed through to `gcloud`                         | debug   |
+| GCLOUD_WAIT_TIMEOUT           | Timeout (s) passed through to `gcloud sql operations wait`          | 600     |
 | GOOGLE_SQL_INSTANCE_NAME      | Name of SQL instance                                                | N/A     |
 | GOOGLE_SQL_BACKUP_BUCKET_PATH | Name of GCS bucket sub-path to export file into                     | N/A     |
 | GOOGLE_SQL_BACKUP_BUCKET      | Name of GCS bucket to export to                                     | N/A     |
 | DATABASE                      | Name of SQL database to export                                      | N/A     |
 | BACKUP_FILENAME               | Backup filename to use, otherwise determined by timestamp           | ""      |
-| BACKUP_SCHEDULE               | Create `hourly` or `nightly` backups (forces the creation timestamp) | none    |
+| BACKUP_SCHEDULE               | Create `hourly` or `nightly` backups (forces the creation timestamp)| none    |
 
 ## Usage
 

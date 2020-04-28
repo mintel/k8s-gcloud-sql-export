@@ -8,10 +8,14 @@
 # already been created.
 #
 # If this is the case, the script can exit(0) early.
-
-
 set -o nounset -o errexit -o pipefail
+
+# Enable tracing of the script
 [[ -n "${TRACE:-}" ]] && set -x
+
+# GCloud vars
+GCLOUD_VERBOSITY=${GCLOUD_VERBOSITY:-"debug"}
+GCLOUD_WAIT_TIMEOUT=${GCLOUD_WAIT_TIMEOUT:-"600"}
 
 # Required by gsutil and maybe some other gcloud components 
 # since this script doesn't run as root.
@@ -47,8 +51,9 @@ function gcloud_activate_service_account() {
 function gcloud_sql_export() {
   local backup_timestamp="$1"
   gcs_backup_path="gs://${GOOGLE_SQL_BACKUP_BUCKET}/${GOOGLE_SQL_BACKUP_BUCKET_PATH}/${backup_timestamp}_${GOOGLE_SQL_INSTANCE_NAME}_${DATABASE}.gz"
-  gcloud --verbosity=debug sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" --database "${DATABASE}" "${gcs_backup_path}"
-
+  gcloud --verbosity="${GCLOUD_VERBOSITY}" sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" --database "${DATABASE}" "${gcs_backup_path}" \
+    || ( echo "Export taking longer than expected - waiting another ${GCLOUD_WAIT_TIMEOUT} seconds." ; \
+      gcloud --verbosity="${GCLOUD_VERBOSITY}" sql operations wait --timeout "${GCLOUD_WAIT_TIMEOUT}" --quiet $(gcloud sql operations list --instance="${GOOGLE_SQL_INSTANCE_NAME}" --filter='status=RUNNING' --format="value(NAME)") )
 }
 
 # Return a GCS filepath, determined by the supplied `backup_timestamp` prefix.
