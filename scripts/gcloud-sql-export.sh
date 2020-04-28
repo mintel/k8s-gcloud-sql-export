@@ -15,7 +15,7 @@ set -o nounset -o errexit -o pipefail
 
 # GCloud vars
 GCLOUD_VERBOSITY=${GCLOUD_VERBOSITY:-"debug"}
-GCLOUD_WAIT_TIMEOUT=${GCLOUD_WAIT_TIMEOUT:-"300"}
+GCLOUD_WAIT_TIMEOUT=${GCLOUD_WAIT_TIMEOUT:-"600"}
 
 # Required by gsutil and maybe some other gcloud components 
 # since this script doesn't run as root.
