@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 - Added `GCLOUD_WAIT_TIMEOUT` environment option
 
 ### Changed
-- Added 'gcloud sql operations wait` command to catch timeouts
+- Added `gcloud sql operations wait` command to catch timeouts
 
 ## v0.1.0 (2020-03-18)
 - Initial release
