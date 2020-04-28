@@ -52,7 +52,7 @@ function gcloud_sql_export() {
   local backup_timestamp="$1"
   gcs_backup_path="gs://${GOOGLE_SQL_BACKUP_BUCKET}/${GOOGLE_SQL_BACKUP_BUCKET_PATH}/${backup_timestamp}_${GOOGLE_SQL_INSTANCE_NAME}_${DATABASE}.gz"
   gcloud --verbosity="${GCLOUD_VERBOSITY}" sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" --database "${DATABASE}" "${gcs_backup_path}" \
-    || ( echo "Export taking longer than expected - waiting another 5 minutes." ; \
+    || ( echo "Export taking longer than expected - waiting another ${GCLOUD_WAIT_TIMEOUT} seconds." ; \
       gcloud --verbosity="${GCLOUD_VERBOSITY}" sql operations wait --timeout "${GCLOUD_WAIT_TIMEOUT}" --quiet $(gcloud sql operations list --instance="${GOOGLE_SQL_INSTANCE_NAME}" --filter='status=RUNNING' --format="value(NAME)") )
 }
 
