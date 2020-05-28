@@ -51,9 +51,16 @@ function gcloud_activate_service_account() {
 function gcloud_sql_export() {
   local backup_timestamp="$1"
   gcs_backup_path="gs://${GOOGLE_SQL_BACKUP_BUCKET}/${GOOGLE_SQL_BACKUP_BUCKET_PATH}/${backup_timestamp}_${GOOGLE_SQL_INSTANCE_NAME}_${DATABASE}.gz"
-  gcloud --verbosity="${GCLOUD_VERBOSITY}" sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" --database "${DATABASE}" "${gcs_backup_path}" \
-    || ( echo "Export taking longer than expected - waiting another ${GCLOUD_WAIT_TIMEOUT} seconds." ; \
-      gcloud --verbosity="${GCLOUD_VERBOSITY}" sql operations wait --timeout "${GCLOUD_WAIT_TIMEOUT}" --quiet $(gcloud sql operations list --instance="${GOOGLE_SQL_INSTANCE_NAME}" --filter='status=RUNNING' --format="value(NAME)") )
+  gcloud --verbosity="${GCLOUD_VERBOSITY}" sql export sql "${GOOGLE_SQL_INSTANCE_NAME}" --database "${DATABASE}" "${gcs_backup_path}" --async
+  echo "Export started, waiting ${GCLOUD_WAIT_TIMEOUT} seconds for it to complete."
+  if ! gcloud --verbosity="${GCLOUD_VERBOSITY}" sql operations wait --timeout "${GCLOUD_WAIT_TIMEOUT}" --quiet "$(gcloud sql operations list --instance="${GOOGLE_SQL_INSTANCE_NAME}" --filter='status=RUNNING' --format="value(NAME)")"; then
+    echo "Wait timed out after ${GCLOUD_WAIT_TIMEOUT} seconds, checking to see if it has succeeded."
+    if [ -z "$(gcloud sql operations list --instance="${GOOGLE_SQL_INSTANCE_NAME}" --filter='status=DONE AND START>=-P1H AND TYPE=EXPORT' --format='value(NAME)')" ]; then
+      echo "Backup failed to complete, or failed to complete within the alotted timeout."
+      return 1
+    fi
+  fi
+  echo "Backup complete."
 }
 
 # Return a GCS filepath, determined by the supplied `backup_timestamp` prefix.
