@@ -55,6 +55,7 @@ function gcloud_sql_export() {
   echo "Export started, waiting ${GCLOUD_WAIT_TIMEOUT} seconds for it to complete."
   if ! gcloud --verbosity="${GCLOUD_VERBOSITY}" sql operations wait --timeout "${GCLOUD_WAIT_TIMEOUT}" --quiet "$selfLink"; then
     echo "Wait timed out after ${GCLOUD_WAIT_TIMEOUT} seconds, checking to see if it has succeeded."
+    sleep 10
     if [ -z "$(gcloud sql operations list --instance="${GOOGLE_SQL_INSTANCE_NAME}" --filter="status=DONE selfLink=$selfLink" --format='value(NAME)')" ]; then
       echo "Backup failed to complete, or failed to complete within the alotted timeout."
       return 1
