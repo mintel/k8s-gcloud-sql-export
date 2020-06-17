@@ -42,8 +42,13 @@ BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-"none"}
 function gcloud_activate_service_account() {
   local file="$1"
 
-  gcloud auth activate-service-account --key-file="$file"
-  gcloud config set project "$(jq -r .project_id "$file")"
+  # Check we have credentials-file and that it exists
+  # We also continue since we'll assume the app could support workload-identity...
+  if  [ -n "${file}" ]  && [ -f "${file}" ] ; then
+    gcloud auth activate-service-account --key-file="$file"
+  fi
+
+  gcloud config set project "${GOOGLE_PROJECT_ID}"
 }
 
 # Run the `gcloud sql export` command prefixing the filename with the specified
