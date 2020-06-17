@@ -3,7 +3,7 @@ All notable changes to this project will be documented in this file.
 
 ## v0.4.0
 ### Added
-- Added GOOGLE_PROJECT_ID (required)
+- Added `GOOGLE_PROJECT_ID` (required)
 
 ### Changed
 - `GOOGLE_APPLICATION_CREDENTIALS` is now optional (to support workload-identity)
