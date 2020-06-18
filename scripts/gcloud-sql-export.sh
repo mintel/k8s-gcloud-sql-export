@@ -16,6 +16,7 @@ set -o nounset -o errexit -o pipefail
 # GCloud vars
 GCLOUD_VERBOSITY=${GCLOUD_VERBOSITY:-"debug"}
 GCLOUD_WAIT_TIMEOUT=${GCLOUD_WAIT_TIMEOUT:-"600"}
+GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS:-""}
 
 # Required by gsutil and maybe some other gcloud components 
 # since this script doesn't run as root.
@@ -42,8 +43,13 @@ BACKUP_SCHEDULE=${BACKUP_SCHEDULE:-"none"}
 function gcloud_activate_service_account() {
   local file="$1"
 
-  gcloud auth activate-service-account --key-file="$file"
-  gcloud config set project "$(jq -r .project_id "$file")"
+  # Check we have credentials-file and that it exists
+  # We also continue since we'll assume the app could support workload-identity...
+  if  [ -f "${file}" ] ; then
+    gcloud auth activate-service-account --key-file="$file"
+  fi
+
+  gcloud config set project "${GOOGLE_PROJECT_ID}"
 }
 
 # Run the `gcloud sql export` command prefixing the filename with the specified
