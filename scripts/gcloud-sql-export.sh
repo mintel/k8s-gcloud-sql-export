@@ -45,7 +45,7 @@ function gcloud_activate_service_account() {
 
   # Check we have credentials-file and that it exists
   # We also continue since we'll assume the app could support workload-identity...
-  if  [ -n "${file}" ]  && [ -f "${file}" ] ; then
+  if  [ -f "${file}" ] ; then
     gcloud auth activate-service-account --key-file="$file"
   fi
 
