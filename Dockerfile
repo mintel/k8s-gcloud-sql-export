@@ -3,9 +3,6 @@ FROM google/cloud-sdk:284.0.0-alpine
 ARG BUILD_DATE
 ARG VCS_REF
 
-RUN echo $BUILD_DATE
-RUN echo $VCS_REF
-
 LABEL maintainer="Nick Badger <nbadger@mintel.com>" \
       org.opencontainers.image.title="k8s-gcloud-export" \
       org.opencontainers.image.description="An image for exporting mysql databases using 'gcloud sql export', and pushing them to a Google bucket." \
@@ -30,6 +27,7 @@ RUN set -e \
     && echo "$JQ_SHA256  jq" | sha256sum -c \
     && mv /tmp/jq /usr/local/bin
 
+COPY --from=banzaicloud/vault-env:1.3.2 /usr/local/bin/vault-env /usr/local/bin/
 COPY ./scripts/gcloud-sql-export.sh /usr/local/bin/gcloud-sql-export.sh
 
 RUN chmod +x /usr/local/bin/gcloud-sql-export.sh
