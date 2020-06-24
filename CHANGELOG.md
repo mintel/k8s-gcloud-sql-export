@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 - Added `banzaicloud/vault-env`
 
 ### Changed
-- Removed unwanted `echo` starts of args in `Dockerfile`
+- Removed unwanted `echo` of args in `Dockerfile`
 
 ## v0.4.0
 ### Added
