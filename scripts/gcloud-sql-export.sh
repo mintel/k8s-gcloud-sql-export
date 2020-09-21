@@ -70,6 +70,17 @@ function gcloud_sql_export() {
   echo "Backup complete."
 }
 
+# Check to see if there are any existing export operations in progress, as additional requests to start another operation
+# if one is running will automatically fail.
+function check_for_running_backup() {
+  if [ -n "$(gcloud sql operations list --instance "${GOOGLE_SQL_INSTANCE_NAME}" --filter="status=RUNNING" --format='value(NAME)')" ]; then
+    echo "An existing backup operation is still in progress, exiting."
+    exit 0
+  else
+    echo "No backup operations in progress, continuing."
+  fi
+}
+
 # Return a GCS filepath, determined by the supplied `backup_timestamp` prefix.
 function get_gcs_path_from_timestamp {
   local backup_timestamp="$1"
@@ -79,6 +90,9 @@ function get_gcs_path_from_timestamp {
 
 # Activate service account
 gcloud_activate_service_account "${GOOGLE_APPLICATION_CREDENTIALS}"
+
+#Check to see if we already have a backup operation in progress for this instance.
+check_for_running_backup
 
 # Used to determine whether name of previous (or new) backup, based on 
 # BACKUP_SCHEDULE setting.
